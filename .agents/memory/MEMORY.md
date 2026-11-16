@@ -1,0 +1,1 @@
+- [Python package firewall pins](python-package-firewall-pins.md) — Recheck blocked exact pins against the latest compatible release before retrying installs.

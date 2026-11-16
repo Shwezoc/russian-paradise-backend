@@ -21,6 +21,17 @@
 ## Telegram Mini App
 Клиент должен отправить `Telegram.WebApp.initData` в `POST /auth/telegram` как JSON `{ "init_data": "..." }`. Сохранить полученный `access_token` в памяти приложения и передавать `Authorization: Bearer <token>` в защищённые запросы. Не использовать `initDataUnsafe` как доказательство личности.
 
+## Frontend v0.4
+Исходный статический интерфейс находится в `frontend/`. Запусти его без сборки из корня проекта:
+
+```sh
+python -m http.server 5000 --bind 0.0.0.0 --directory frontend
+```
+
+Затем открой `http://127.0.0.1:5000`. Локальная игра работает без Telegram; авторизация требует опубликованную HTTPS-страницу, открытую внутри Telegram Mini App, чтобы Telegram предоставил настоящий `initData`.
+
+API разрешает CORS для `https://sweet-bavarois-1f4283.netlify.app` и, если задан `WEBAPP_URL`, для указанного там HTTPS/HTTP origin. Изменение действует только в этом проекте и не меняет опубликованный backend на Render.
+
 ## Перед production
 - Добавить Alembic migrations вместо `create_all`.
 - Включить HTTPS, CORS только для домена Mini App и rate limiting.

@@ -1,4 +1,7 @@
+from urllib.parse import urlsplit
+
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from .config import settings
@@ -8,6 +11,41 @@ from .schemas import TelegramAuthIn, AuctionCreateIn
 from .auth import verify_telegram_init_data, issue_token, current_user
 
 app = FastAPI(title="RUSSIAN PARADISE API", version="0.1.0")
+
+PUBLISHED_WEBAPP_ORIGIN = "https://sweet-bavarois-1f4283.netlify.app"
+
+
+def _allowed_webapp_origins() -> list[str]:
+    origins = [PUBLISHED_WEBAPP_ORIGIN]
+    configured_url = settings.webapp_url.strip()
+    if not configured_url:
+        return origins
+
+    parsed = urlsplit(configured_url)
+    if (
+        parsed.scheme.lower() not in {"http", "https"}
+        or not parsed.netloc
+        or parsed.username is not None
+        or parsed.password is not None
+        or "*" in parsed.netloc
+    ):
+        raise ValueError("WEBAPP_URL must be an absolute HTTP(S) URL without credentials or a wildcard")
+
+    configured_origin = f"{parsed.scheme.lower()}://{parsed.netloc.lower()}"
+    if configured_origin not in origins:
+        origins.append(configured_origin)
+    return origins
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_allowed_webapp_origins(),
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Accept", "Authorization", "Content-Type"],
+    allow_credentials=False,
+    max_age=600,
+)
+
 
 @app.on_event("startup")
 def startup():
